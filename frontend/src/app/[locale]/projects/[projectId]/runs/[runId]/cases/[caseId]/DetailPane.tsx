@@ -97,7 +97,7 @@ export default function TestCaseDetailPane({
               </div>
             }
           >
-            <Comments runCaseId={runCaseId} onCommentCountChange={setCommentCount} />
+            <Comments runCaseId={runCaseId} projectId={Number(projectId)} onCommentCountChange={setCommentCount} />
           </Tab>
           <Tab key="history" title="History">
             <History />

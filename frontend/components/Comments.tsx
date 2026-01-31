@@ -11,10 +11,11 @@ import type { CommentType } from '@/types/comment';
 
 type Props = {
   runCaseId?: number;
+  projectId?: number;
   onCommentCountChange?: (count: number) => void;
 };
 
-export default function Comments({ runCaseId, onCommentCountChange }: Props) {
+export default function Comments({ runCaseId, projectId, onCommentCountChange }: Props) {
   const context = useContext(TokenContext);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -153,7 +154,7 @@ export default function Comments({ runCaseId, onCommentCountChange }: Props) {
           value={newComment}
           onValueChange={setNewComment}
           minRows={3}
-          isDisabled={!context.isProjectReporter(0) || isSubmitting}
+          isDisabled={!projectId || !context.isProjectReporter(Number(projectId)) || isSubmitting}
         />
         <Button
           color="primary"
@@ -161,7 +162,7 @@ export default function Comments({ runCaseId, onCommentCountChange }: Props) {
           className="mt-2"
           onPress={handleAddComment}
           isLoading={isSubmitting}
-          isDisabled={!newComment.trim() || !context.isProjectReporter(0)}
+          isDisabled={!newComment.trim() || !projectId || !context.isProjectReporter(Number(projectId))}
         >
           Add Comment
         </Button>
