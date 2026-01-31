@@ -7,6 +7,7 @@ import defineTag from '../../models/tags.js';
 import defineAttachment from '../../models/attachments.js';
 import authMiddleware from '../../middleware/auth.js';
 import visibilityMiddleware from '../../middleware/verifyVisible.js';
+import defineRunCase from '../../models/runCases.js';
 
 export default function (sequelize) {
   const Case = defineCase(sequelize, DataTypes);
@@ -19,6 +20,10 @@ export default function (sequelize) {
   Attachment.belongsToMany(Case, { through: 'caseAttachments' });
   Case.belongsToMany(Tags, { through: 'caseTags', foreignKey: 'caseId', otherKey: 'tagId' });
   Tags.belongsToMany(Case, { through: 'caseTags', foreignKey: 'tagId', otherKey: 'caseId' });
+  const RunCase = defineRunCase(sequelize, DataTypes);
+  RunCase.belongsTo(Case, { foreignKey: 'caseId' });
+  Case.hasMany(RunCase, { foreignKey: 'caseId' });
+
   const { verifySignedIn } = authMiddleware(sequelize);
   const { verifyProjectVisibleFromCaseId } = visibilityMiddleware(sequelize);
 
@@ -43,6 +48,9 @@ export default function (sequelize) {
             model: Tags,
             attributes: ['id', 'name'],
             through: { attributes: [] },
+          },
+          {
+            model: RunCase,
           },
         ],
       });

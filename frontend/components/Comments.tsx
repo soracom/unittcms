@@ -10,13 +10,13 @@ import { logError } from '@/utils/errorHandler';
 import type { CommentType } from '@/types/comment';
 
 type Props = {
+  projectId: string;
   commentableType: 'RunCase' | 'Run' | 'Case';
-  commentableId: number;
-  projectId?: number;
+  commentableId?: number;
   onCommentCountChange?: (count: number) => void;
 };
 
-export default function Comments({ commentableType, commentableId, projectId, onCommentCountChange }: Props) {
+export default function Comments({ projectId, commentableType, commentableId, onCommentCountChange }: Props) {
   const context = useContext(TokenContext);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -26,12 +26,12 @@ export default function Comments({ commentableType, commentableId, projectId, on
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!commentableType || !commentableId || !context.isSignedIn()) return;
+    if (!commentableType || !commentableId || !projectId || !context.isSignedIn()) return;
 
     async function loadComments() {
       setIsLoading(true);
       try {
-        const data = await fetchComments(context.token.access_token, commentableType, commentableId);
+        const data = await fetchComments(context.token.access_token, projectId, commentableType, commentableId);
         setComments(data);
         if (onCommentCountChange) {
           onCommentCountChange(data.length);
@@ -132,6 +132,8 @@ export default function Comments({ commentableType, commentableId, projectId, on
         <div className="text-center">
           <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
           <p>No entity selected</p>
+          <div>{!commentableType && <p>Please select a type</p>}</div>
+          <div>{!commentableId && <p>Please select an ID</p>}</div>
         </div>
       </div>
     );
@@ -178,11 +180,7 @@ export default function Comments({ commentableType, commentableId, projectId, on
             <Card key={comment.id} shadow="sm">
               <CardBody>
                 <div className="flex items-start gap-3">
-                  <UserAvatar
-                    name={comment.User?.name || 'Unknown'}
-                    size="sm"
-                    className="flex-shrink-0"
-                  />
+                  <UserAvatar name={comment.User?.name || 'Unknown'} size="sm" className="flex-shrink-0" />
                   <div className="flex-grow min-w-0">
                     <div className="flex items-center justify-between mb-2">
                       <div>
@@ -261,4 +259,3 @@ export default function Comments({ commentableType, commentableId, projectId, on
     </div>
   );
 }
-

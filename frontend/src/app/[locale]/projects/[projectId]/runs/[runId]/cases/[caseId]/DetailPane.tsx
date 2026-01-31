@@ -50,7 +50,7 @@ export default function TestCaseDetailPane({
           data.Steps.sort((a: StepType, b: StepType) => a.caseSteps.stepNo - b.caseSteps.stepNo);
         }
         setTestCase(data);
-        
+
         // Find the runCase for this case in this run
         if (data.RunCases && data.RunCases.length > 0) {
           const runCase = data.RunCases.find((rc) => rc.runId === Number(runId));
@@ -97,11 +97,11 @@ export default function TestCaseDetailPane({
               </div>
             }
           >
-            <Comments 
-              commentableType="RunCase" 
-              commentableId={runCaseId} 
-              projectId={Number(projectId)} 
-              onCommentCountChange={setCommentCount} 
+            <Comments
+              projectId={projectId}
+              commentableType="RunCase"
+              commentableId={runCaseId}
+              onCommentCountChange={setCommentCount}
             />
           </Tab>
           <Tab key="history" title="History">

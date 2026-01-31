@@ -8,11 +8,13 @@ import visibilityMiddleware from '../../middleware/verifyVisible.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectVisibleFromRunCaseId } = visibilityMiddleware(sequelize);
+  const { verifyProjectVisibleFromProjectId } = visibilityMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
   const User = defineUser(sequelize, DataTypes);
+  Comment.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
+  User.hasMany(Comment, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
-  router.get('/', verifySignedIn, verifyProjectVisibleFromRunCaseId, async (req, res) => {
+  router.get('/', verifySignedIn, verifyProjectVisibleFromProjectId, async (req, res) => {
     const { commentableType, commentableId } = req.query;
 
     if (!commentableType || !commentableId) {
@@ -28,7 +30,7 @@ export default function (sequelize) {
         include: [
           {
             model: User,
-            attributes: ['id', 'name', 'email'],
+            attributes: ['id', 'username', 'email'],
           },
         ],
         order: [['createdAt', 'ASC']],
