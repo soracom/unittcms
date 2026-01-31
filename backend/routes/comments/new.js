@@ -11,15 +11,31 @@ export default function (sequelize) {
   const Comment = defineComment(sequelize, DataTypes);
 
   router.post('/new', verifySignedIn, verifyProjectReporterFromRunCaseId, async (req, res) => {
-    const { runCaseId, content } = req.body;
+    const { runCaseId, commentableType, commentableId, content } = req.body;
 
-    if (!runCaseId || !content) {
-      return res.status(400).json({ error: 'runCaseId and content are required' });
+    // Support both old (runCaseId) and new (commentableType/Id) parameters
+    let finalCommentableType;
+    let finalCommentableId;
+
+    if (commentableType && commentableId) {
+      finalCommentableType = commentableType;
+      finalCommentableId = commentableId;
+    } else if (runCaseId) {
+      // Backward compatibility
+      finalCommentableType = 'RunCase';
+      finalCommentableId = runCaseId;
+    } else {
+      return res.status(400).json({ error: 'commentableType and commentableId, or runCaseId is required' });
+    }
+
+    if (!content) {
+      return res.status(400).json({ error: 'content is required' });
     }
 
     try {
       const newComment = await Comment.create({
-        runCaseId: runCaseId,
+        commentableType: finalCommentableType,
+        commentableId: finalCommentableId,
         userId: req.userId,
         content: content,
       });

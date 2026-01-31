@@ -113,7 +113,12 @@ export default function (sequelize) {
                 'id',
                 'runId',
                 'status',
-                [sequelize.literal('(SELECT COUNT(*) FROM comments WHERE comments.runCaseId = RunCases.id)'), 'commentCount'],
+                [
+                  sequelize.literal(
+                    "(SELECT COUNT(*) FROM comments WHERE comments.commentableType = 'RunCase' AND comments.commentableId = RunCases.id)"
+                  ),
+                  'commentCount',
+                ],
               ],
               // Must be 'true' when filtering by status, otherwise all cases are returned.
               required: runCaseRequired,

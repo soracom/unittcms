@@ -10,12 +10,15 @@ import { logError } from '@/utils/errorHandler';
 import type { CommentType } from '@/types/comment';
 
 type Props = {
+  commentableType?: 'RunCase' | 'Run' | 'Case';
+  commentableId?: number;
+  // Legacy support
   runCaseId?: number;
   projectId?: number;
   onCommentCountChange?: (count: number) => void;
 };
 
-export default function Comments({ runCaseId, projectId, onCommentCountChange }: Props) {
+export default function Comments({ commentableType, commentableId, runCaseId, projectId, onCommentCountChange }: Props) {
   const context = useContext(TokenContext);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -24,13 +27,17 @@ export default function Comments({ runCaseId, projectId, onCommentCountChange }:
   const [editContent, setEditContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Support both new polymorphic and legacy runCaseId
+  const finalCommentableType = commentableType || (runCaseId ? 'RunCase' : undefined);
+  const finalCommentableId = commentableId || runCaseId;
+
   useEffect(() => {
-    if (!runCaseId || !context.isSignedIn()) return;
+    if (!finalCommentableType || !finalCommentableId || !context.isSignedIn()) return;
 
     async function loadComments() {
       setIsLoading(true);
       try {
-        const data = await fetchComments(context.token.access_token, runCaseId);
+        const data = await fetchComments(context.token.access_token, finalCommentableType!, finalCommentableId!);
         setComments(data);
         if (onCommentCountChange) {
           onCommentCountChange(data.length);
@@ -43,14 +50,14 @@ export default function Comments({ runCaseId, projectId, onCommentCountChange }:
     }
 
     loadComments();
-  }, [runCaseId, context, onCommentCountChange]);
+  }, [finalCommentableType, finalCommentableId, context, onCommentCountChange]);
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !runCaseId) return;
+    if (!newComment.trim() || !finalCommentableType || !finalCommentableId) return;
 
     setIsSubmitting(true);
     try {
-      const comment = await createComment(context.token.access_token, runCaseId, newComment);
+      const comment = await createComment(context.token.access_token, finalCommentableType, finalCommentableId, newComment);
       setComments([...comments, comment]);
       setNewComment('');
       if (onCommentCountChange) {
@@ -74,11 +81,11 @@ export default function Comments({ runCaseId, projectId, onCommentCountChange }:
   };
 
   const handleUpdateComment = async (id: number) => {
-    if (!editContent.trim() || !runCaseId) return;
+    if (!editContent.trim() || !finalCommentableId) return;
 
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateComment(context.token.access_token, id, editContent, runCaseId);
+      const updatedComment = await updateComment(context.token.access_token, id, editContent, finalCommentableId);
       setComments(comments.map((c) => (c.id === id ? updatedComment : c)));
       setEditingId(null);
       setEditContent('');
@@ -100,11 +107,11 @@ export default function Comments({ runCaseId, projectId, onCommentCountChange }:
   };
 
   const handleDeleteComment = async (id: number) => {
-    if (!runCaseId) return;
+    if (!finalCommentableId) return;
 
     setIsSubmitting(true);
     try {
-      await deleteComment(context.token.access_token, id, runCaseId);
+      await deleteComment(context.token.access_token, id, finalCommentableId);
       const newComments = comments.filter((c) => c.id !== id);
       setComments(newComments);
       if (onCommentCountChange) {
@@ -127,12 +134,12 @@ export default function Comments({ runCaseId, projectId, onCommentCountChange }:
     }
   };
 
-  if (!runCaseId) {
+  if (!finalCommentableType || !finalCommentableId) {
     return (
       <div className="h-full text-default-500 flex items-center justify-center">
         <div className="text-center">
           <MessageSquare size={48} className="mx-auto mb-4 opacity-50" />
-          <p>No test case selected</p>
+          <p>No entity selected</p>
         </div>
       </div>
     );

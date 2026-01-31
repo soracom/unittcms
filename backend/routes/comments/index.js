@@ -13,17 +13,28 @@ export default function (sequelize) {
   const User = defineUser(sequelize, DataTypes);
 
   router.get('/', verifySignedIn, verifyProjectVisibleFromRunCaseId, async (req, res) => {
-    const { runCaseId } = req.query;
+    const { runCaseId, commentableType, commentableId } = req.query;
 
-    if (!runCaseId) {
-      return res.status(400).json({ error: 'runCaseId is required' });
+    // Support both old (runCaseId) and new (commentableType/Id) parameters
+    let whereClause;
+    if (commentableType && commentableId) {
+      whereClause = {
+        commentableType: commentableType,
+        commentableId: commentableId,
+      };
+    } else if (runCaseId) {
+      // Backward compatibility
+      whereClause = {
+        commentableType: 'RunCase',
+        commentableId: runCaseId,
+      };
+    } else {
+      return res.status(400).json({ error: 'commentableType and commentableId, or runCaseId is required' });
     }
 
     try {
       const comments = await Comment.findAll({
-        where: {
-          runCaseId: runCaseId,
-        },
+        where: whereClause,
         include: [
           {
             model: User,

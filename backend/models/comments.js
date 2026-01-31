@@ -1,6 +1,10 @@
 function defineComment(sequelize, DataTypes) {
   const Comment = sequelize.define('Comment', {
-    runCaseId: {
+    commentableType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    commentableId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
@@ -15,9 +19,21 @@ function defineComment(sequelize, DataTypes) {
   });
 
   Comment.associate = (models) => {
+    // Polymorphic associations
     Comment.belongsTo(models.RunCase, {
-      foreignKey: 'runCaseId',
-      onDelete: 'CASCADE',
+      foreignKey: 'commentableId',
+      constraints: false,
+      as: 'runCase',
+    });
+    Comment.belongsTo(models.Run, {
+      foreignKey: 'commentableId',
+      constraints: false,
+      as: 'run',
+    });
+    Comment.belongsTo(models.Case, {
+      foreignKey: 'commentableId',
+      constraints: false,
+      as: 'case',
     });
     Comment.belongsTo(models.User, {
       foreignKey: 'userId',

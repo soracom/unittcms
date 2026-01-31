@@ -1,8 +1,12 @@
 import { makeRequest } from './request';
 import { CommentType } from '@/types/comment';
 
-export async function fetchComments(token: string, runCaseId: number): Promise<CommentType[]> {
-  const url = `/comments?runCaseId=${runCaseId}`;
+export async function fetchComments(
+  token: string,
+  commentableType: 'RunCase' | 'Run' | 'Case',
+  commentableId: number
+): Promise<CommentType[]> {
+  const url = `/comments?commentableType=${commentableType}&commentableId=${commentableId}`;
   const response = await makeRequest(url, {
     method: 'GET',
     headers: {
@@ -15,7 +19,8 @@ export async function fetchComments(token: string, runCaseId: number): Promise<C
 
 export async function createComment(
   token: string,
-  runCaseId: number,
+  commentableType: 'RunCase' | 'Run' | 'Case',
+  commentableId: number,
   content: string
 ): Promise<CommentType> {
   const url = '/comments/new';
@@ -25,7 +30,7 @@ export async function createComment(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ runCaseId, content }),
+    body: JSON.stringify({ commentableType, commentableId, content }),
   });
   return response;
 }
