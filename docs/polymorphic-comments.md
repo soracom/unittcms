@@ -146,13 +146,12 @@ await deleteComment(token, commentId, runCaseId);
 
 ## Migration
 
-### Automatic Data Migration
+### Database Migration
 
-The migration `20260131000001-convert-comments-to-polymorphic.js` automatically:
-1. Adds new `commentableType` and `commentableId` columns
-2. Migrates existing `runCaseId` data to the new structure (sets commentableType='RunCase')
-3. Removes the old `runCaseId` column
-4. Creates composite index for performance
+The migration `20260131000000-create-comments.js` creates the comments table with polymorphic structure from the start:
+1. Creates table with `commentableType` and `commentableId` columns
+2. Adds composite index on `(commentableType, commentableId)` for efficient querying
+3. References users table with SET NULL on delete
 
 ### Running the Migration
 
@@ -168,7 +167,7 @@ cd backend
 npx sequelize-cli db:migrate:undo
 ```
 
-**Note**: Rollback will delete any comments that are not of type 'RunCase'.
+**Note**: Rollback will drop the entire comments table.
 
 ## Adding Comments to New Entity Types
 

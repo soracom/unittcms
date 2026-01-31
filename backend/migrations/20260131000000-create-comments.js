@@ -5,14 +5,13 @@ export async function up(queryInterface, Sequelize) {
       primaryKey: true,
       autoIncrement: true,
     },
-    runCaseId: {
+    commentableType: {
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+    commentableId: {
       type: Sequelize.INTEGER,
-      references: {
-        model: 'runCases',
-        key: 'id',
-      },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      allowNull: false,
     },
     userId: {
       type: Sequelize.INTEGER,
@@ -37,7 +36,10 @@ export async function up(queryInterface, Sequelize) {
     },
   });
 
-  await queryInterface.addIndex('comments', ['runCaseId']);
+  // Add composite index for efficient polymorphic queries
+  await queryInterface.addIndex('comments', ['commentableType', 'commentableId'], {
+    name: 'comments_commentable_index',
+  });
 }
 
 export async function down(queryInterface) {

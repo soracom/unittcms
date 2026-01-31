@@ -84,13 +84,26 @@ POST /comments/new { commentableType: "Case", commentableId: 789, content: "..."
 
 ### マイグレーション
 
-`backend/migrations/20260131000001-convert-comments-to-polymorphic.js`
+`backend/migrations/20260131000000-create-comments.js`
 
-既存のデータを自動的に変換します：
-1. 新しいカラム `commentableType` と `commentableId` を追加
-2. 既存の `runCaseId` のデータを新しい構造に変換（commentableType='RunCase'に設定）
-3. 古い `runCaseId` カラムを削除
-4. パフォーマンスのため複合インデックスを作成
+ポリモーフィック構造のcommentsテーブルを最初から作成します：
+1. `commentableType` と `commentableId` カラムを持つテーブルを作成
+2. パフォーマンスのため複合インデックスを作成
+3. usersテーブルへの参照（削除時はSET NULL）
+
+実行方法：
+```bash
+cd backend
+npx sequelize-cli db:migrate
+```
+
+ロールバック（必要に応じて）：
+```bash
+cd backend
+npx sequelize-cli db:migrate:undo
+```
+
+**注意**: ロールバックするとcommentsテーブル全体が削除されます。
 
 ### モデル
 

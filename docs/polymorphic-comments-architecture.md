@@ -161,30 +161,32 @@ FROM cases c;
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Before Migration (Old Schema)              │
+│  Fresh Installation (Single Migration)     │
 ├─────────────────────────────────────────────┤
-│ Comments Table:                             │
-│   id | runCaseId | userId | content         │
-│  ────┼───────────┼────────┼────────         │
-│   1  |    123    |   10   | "Test failed"   │
-│   2  |    124    |   11   | "Passed"        │
+│                                             │
+│  npx sequelize-cli db:migrate              │
+│                                             │
+│  Creates comments table with:              │
+│  - commentableType (STRING)                │
+│  - commentableId (INTEGER)                 │
+│  - userId (INTEGER → users.id)             │
+│  - content (TEXT)                          │
+│                                             │
+│  Adds composite index:                     │
+│  - (commentableType, commentableId)        │
+│                                             │
 └─────────────────────────────────────────────┘
                     │
-                    │ db:migrate
+                    │ Ready to use!
                     ▼
 ┌─────────────────────────────────────────────────────────┐
-│  After Migration (New Schema)                           │
+│  Polymorphic Comment System Active                      │
 ├─────────────────────────────────────────────────────────┤
-│ Comments Table:                                         │
-│   id | commentableType | commentableId | userId | ...   │
-│  ────┼─────────────────┼───────────────┼────────┼────   │
-│   1  |    'RunCase'    |     123       |   10   | ...   │
-│   2  |    'RunCase'    |     124       |   11   | ...   │
-│                                                          │
-│ Now ready for:                                          │
-│   - 'Run' comments                                      │
-│   - 'Case' comments                                     │
-│   - Future entity types                                 │
+│  Can attach comments to:                                │
+│   - RunCase (currently implemented)                     │
+│   - Run (architecture ready)                            │
+│   - Case (architecture ready)                           │
+│   - Future entity types (easy to add)                   │
 └─────────────────────────────────────────────────────────┘
 ```
 
