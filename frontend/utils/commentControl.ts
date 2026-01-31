@@ -38,8 +38,7 @@ export async function createComment(
 export async function updateComment(
   token: string,
   id: number,
-  content: string,
-  runCaseId: number
+  content: string
 ): Promise<CommentType> {
   const url = '/comments/edit';
   const response = await makeRequest(url, {
@@ -48,12 +47,12 @@ export async function updateComment(
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ id, content, runCaseId }),
+    body: JSON.stringify({ id, content }),
   });
   return response;
 }
 
-export async function deleteComment(token: string, id: number, runCaseId: number): Promise<void> {
+export async function deleteComment(token: string, id: number): Promise<void> {
   const url = '/comments/delete';
   await makeRequest(url, {
     method: 'POST',
@@ -61,6 +60,6 @@ export async function deleteComment(token: string, id: number, runCaseId: number
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ id, runCaseId }),
+    body: JSON.stringify({ id }),
   });
 }

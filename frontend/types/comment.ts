@@ -2,8 +2,6 @@ type CommentType = {
   id: number;
   commentableType: 'RunCase' | 'Run' | 'Case';
   commentableId: number;
-  // Legacy support for backward compatibility
-  runCaseId?: number;
   userId: number;
   content: string;
   createdAt: string;

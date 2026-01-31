@@ -10,15 +10,13 @@ import { logError } from '@/utils/errorHandler';
 import type { CommentType } from '@/types/comment';
 
 type Props = {
-  commentableType?: 'RunCase' | 'Run' | 'Case';
-  commentableId?: number;
-  // Legacy support
-  runCaseId?: number;
+  commentableType: 'RunCase' | 'Run' | 'Case';
+  commentableId: number;
   projectId?: number;
   onCommentCountChange?: (count: number) => void;
 };
 
-export default function Comments({ commentableType, commentableId, runCaseId, projectId, onCommentCountChange }: Props) {
+export default function Comments({ commentableType, commentableId, projectId, onCommentCountChange }: Props) {
   const context = useContext(TokenContext);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,17 +25,13 @@ export default function Comments({ commentableType, commentableId, runCaseId, pr
   const [editContent, setEditContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Support both new polymorphic and legacy runCaseId
-  const finalCommentableType = commentableType || (runCaseId ? 'RunCase' : undefined);
-  const finalCommentableId = commentableId || runCaseId;
-
   useEffect(() => {
-    if (!finalCommentableType || !finalCommentableId || !context.isSignedIn()) return;
+    if (!commentableType || !commentableId || !context.isSignedIn()) return;
 
     async function loadComments() {
       setIsLoading(true);
       try {
-        const data = await fetchComments(context.token.access_token, finalCommentableType!, finalCommentableId!);
+        const data = await fetchComments(context.token.access_token, commentableType, commentableId);
         setComments(data);
         if (onCommentCountChange) {
           onCommentCountChange(data.length);
@@ -50,14 +44,14 @@ export default function Comments({ commentableType, commentableId, runCaseId, pr
     }
 
     loadComments();
-  }, [finalCommentableType, finalCommentableId, context, onCommentCountChange]);
+  }, [commentableType, commentableId, context, onCommentCountChange]);
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !finalCommentableType || !finalCommentableId) return;
+    if (!newComment.trim() || !commentableType || !commentableId) return;
 
     setIsSubmitting(true);
     try {
-      const comment = await createComment(context.token.access_token, finalCommentableType, finalCommentableId, newComment);
+      const comment = await createComment(context.token.access_token, commentableType, commentableId, newComment);
       setComments([...comments, comment]);
       setNewComment('');
       if (onCommentCountChange) {
@@ -81,11 +75,11 @@ export default function Comments({ commentableType, commentableId, runCaseId, pr
   };
 
   const handleUpdateComment = async (id: number) => {
-    if (!editContent.trim() || !finalCommentableId) return;
+    if (!editContent.trim()) return;
 
     setIsSubmitting(true);
     try {
-      const updatedComment = await updateComment(context.token.access_token, id, editContent, finalCommentableId);
+      const updatedComment = await updateComment(context.token.access_token, id, editContent);
       setComments(comments.map((c) => (c.id === id ? updatedComment : c)));
       setEditingId(null);
       setEditContent('');
@@ -107,11 +101,9 @@ export default function Comments({ commentableType, commentableId, runCaseId, pr
   };
 
   const handleDeleteComment = async (id: number) => {
-    if (!finalCommentableId) return;
-
     setIsSubmitting(true);
     try {
-      await deleteComment(context.token.access_token, id, finalCommentableId);
+      await deleteComment(context.token.access_token, id);
       const newComments = comments.filter((c) => c.id !== id);
       setComments(newComments);
       if (onCommentCountChange) {
@@ -134,7 +126,7 @@ export default function Comments({ commentableType, commentableId, runCaseId, pr
     }
   };
 
-  if (!finalCommentableType || !finalCommentableId) {
+  if (!commentableType || !commentableId) {
     return (
       <div className="h-full text-default-500 flex items-center justify-center">
         <div className="text-center">
