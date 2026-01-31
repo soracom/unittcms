@@ -3,11 +3,11 @@
 import { useEffect, useState, useContext } from 'react';
 import { Button, Textarea, Card, CardBody, Spinner, addToast } from '@heroui/react';
 import { Trash2, Edit2, MessageSquare } from 'lucide-react';
+import UserAvatar from './UserAvatar';
 import { TokenContext } from '@/utils/TokenProvider';
 import { fetchComments, createComment, updateComment, deleteComment } from '@/utils/commentControl';
 import { logError } from '@/utils/errorHandler';
 import type { CommentType } from '@/types/comment';
-import UserAvatar from './UserAvatar';
 
 type Props = {
   runCaseId?: number;
@@ -29,7 +29,7 @@ export default function Comments({ runCaseId, onCommentCountChange }: Props) {
     async function loadComments() {
       setIsLoading(true);
       try {
-        const data = await fetchComments(context.token.access_token, runCaseId!);
+        const data = await fetchComments(context.token.access_token, runCaseId);
         setComments(data);
         if (onCommentCountChange) {
           onCommentCountChange(data.length);

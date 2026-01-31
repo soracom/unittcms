@@ -1,5 +1,5 @@
-import { CommentType } from '@/types/comment';
 import { makeRequest } from './request';
+import { CommentType } from '@/types/comment';
 
 export async function fetchComments(token: string, runCaseId: number): Promise<CommentType[]> {
   const url = `/comments?runCaseId=${runCaseId}`;

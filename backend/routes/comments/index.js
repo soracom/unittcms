@@ -2,7 +2,6 @@ import express from 'express';
 const router = express.Router();
 import { DataTypes } from 'sequelize';
 import defineComment from '../../models/comments.js';
-import defineRunCase from '../../models/runCases.js';
 import defineUser from '../../models/users.js';
 import authMiddleware from '../../middleware/auth.js';
 import visibilityMiddleware from '../../middleware/verifyVisible.js';
@@ -11,7 +10,6 @@ export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
   const { verifyProjectVisibleFromRunCaseId } = visibilityMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
-  const RunCase = defineRunCase(sequelize, DataTypes);
   const User = defineUser(sequelize, DataTypes);
 
   router.get('/', verifySignedIn, verifyProjectVisibleFromRunCaseId, async (req, res) => {
