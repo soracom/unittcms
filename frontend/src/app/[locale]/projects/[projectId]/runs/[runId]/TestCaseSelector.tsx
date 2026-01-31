@@ -15,7 +15,7 @@ import {
   SortDescriptor,
   Chip,
 } from '@heroui/react';
-import { ChevronDown, MoreVertical, CopyPlus, CopyMinus } from 'lucide-react';
+import { ChevronDown, MoreVertical, CopyPlus, CopyMinus, MessageSquare } from 'lucide-react';
 import RunCaseStatus from './RunCaseStatus';
 import { Link, NextUiLinkClasses } from '@/src/i18n/routing';
 import { testRunCaseStatus } from '@/config/selection';
@@ -64,6 +64,7 @@ export default function TestCaseSelector({
     { name: messages.priority, uid: 'priority', sortable: true },
     { name: messages.tags, uid: 'tags', sortable: false },
     { name: messages.status, uid: 'runStatus', sortable: true },
+    { name: messages.comments || 'Comments', uid: 'comments', sortable: false },
     { name: messages.actions, uid: 'actions' },
   ];
 
@@ -115,6 +116,8 @@ export default function TestCaseSelector({
     const cellValue = testCase[columnKey as keyof CaseType];
     const isIncluded = isCaseIncluded(testCase);
     const runStatus = testCase.RunCases && testCase.RunCases.length > 0 ? testCase.RunCases[0].status : 0;
+    const commentCount =
+      testCase.RunCases && testCase.RunCases.length > 0 ? testCase.RunCases[0].commentCount || 0 : 0;
 
     switch (columnKey) {
       case 'title':
@@ -178,6 +181,24 @@ export default function TestCaseSelector({
               ))}
             </DropdownMenu>
           </Dropdown>
+        );
+      case 'comments':
+        return (
+          <div className={isIncluded ? '' : notIncludedCaseClass}>
+            {isIncluded && commentCount > 0 ? (
+              <Link
+                href={`/projects/${projectId}/runs/${runId}/cases/${testCase.id}#comments`}
+                locale={locale}
+                className="flex items-center gap-1"
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <MessageSquare size={16} />
+                <span>{commentCount}</span>
+              </Link>
+            ) : (
+              <span className="text-default-400">-</span>
+            )}
+          </div>
         );
       case 'actions':
         return (

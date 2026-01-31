@@ -44,6 +44,7 @@ type RunCaseType = {
   caseId: number;
   status: number;
   editState: 'notChanged' | 'changed' | 'new' | 'deleted';
+  commentCount?: number;
 };
 
 type CaseAttachmentType = {

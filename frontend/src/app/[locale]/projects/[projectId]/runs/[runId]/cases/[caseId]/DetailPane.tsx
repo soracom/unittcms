@@ -15,6 +15,7 @@ import type { TestTypeMessages } from '@/types/testType';
 
 type Props = {
   projectId: string;
+  runId: string;
   locale: string;
   caseId: string;
   messages: RunDetailMessages;
@@ -24,6 +25,7 @@ type Props = {
 
 export default function TestCaseDetailPane({
   projectId,
+  runId,
   locale,
   caseId,
   messages,
@@ -33,6 +35,8 @@ export default function TestCaseDetailPane({
   const context = useContext(TokenContext);
   const [isFetching, setIsFetching] = useState(false);
   const [testCase, setTestCase] = useState<CaseType | null>(null);
+  const [runCaseId, setRunCaseId] = useState<number | undefined>(undefined);
+  const [commentCount, setCommentCount] = useState<number>(0);
 
   useEffect(() => {
     async function fetchDataEffect() {
@@ -46,6 +50,14 @@ export default function TestCaseDetailPane({
           data.Steps.sort((a: StepType, b: StepType) => a.caseSteps.stepNo - b.caseSteps.stepNo);
         }
         setTestCase(data);
+        
+        // Find the runCase for this case in this run
+        if (data.RunCases && data.RunCases.length > 0) {
+          const runCase = data.RunCases.find((rc) => rc.runId === Number(runId));
+          if (runCase) {
+            setRunCaseId(runCase.id);
+          }
+        }
       } catch (error: unknown) {
         logError('Error fetching case data', error);
       } finally {
@@ -54,7 +66,7 @@ export default function TestCaseDetailPane({
     }
 
     fetchDataEffect();
-  }, [context, caseId]);
+  }, [context, caseId, runId]);
 
   if (isFetching || !testCase) {
     return <div>loading...</div>;
@@ -77,13 +89,15 @@ export default function TestCaseDetailPane({
             title={
               <div className="flex items-center space-x-2">
                 <span>Comments</span>
-                <Chip size="sm" variant="faded">
-                  3
-                </Chip>
+                {commentCount > 0 && (
+                  <Chip size="sm" variant="faded">
+                    {commentCount}
+                  </Chip>
+                )}
               </div>
             }
           >
-            <Comments />
+            <Comments runCaseId={runCaseId} onCommentCountChange={setCommentCount} />
           </Tab>
           <Tab key="history" title="History">
             <History />

@@ -51,6 +51,7 @@ export default function Page({
   return (
     <DetailPane
       projectId={params.projectId}
+      runId={params.runId}
       caseId={params.caseId}
       locale={params.locale}
       messages={messages}
