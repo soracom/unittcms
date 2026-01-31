@@ -175,6 +175,16 @@ app.use('/tags', tagsEditRoute(sequelize));
 import caseTagsEditRoute from './routes/casetags/edit.js';
 app.use('/casetags', caseTagsEditRoute(sequelize));
 
+// "/comments"
+import commentsIndexRoute from './routes/comments/index.js';
+import commentsNewRoute from './routes/comments/new.js';
+import commentsEditRoute from './routes/comments/edit.js';
+import commentsDeleteRoute from './routes/comments/delete.js';
+app.use('/comments', commentsIndexRoute(sequelize));
+app.use('/comments', commentsNewRoute(sequelize));
+app.use('/comments', commentsEditRoute(sequelize));
+app.use('/comments', commentsDeleteRoute(sequelize));
+
 // "/home"
 import homeIndexRoute from './routes/home/index.js';
 app.use('/home', homeIndexRoute(sequelize));

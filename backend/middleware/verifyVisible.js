@@ -4,6 +4,7 @@ import defineProject from '../models/projects.js';
 import defineFolder from '../models/folders.js';
 import defineCase from '../models/cases.js';
 import defineRun from '../models/runs.js';
+import defineRunCase from '../models/runCases.js';
 
 export default function verifyVisibleMiddleware(sequelize) {
   /**
@@ -117,6 +118,40 @@ export default function verifyVisibleMiddleware(sequelize) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
+  /**
+   * Verify user can read project by runCaseId
+   * (have to be called after verifySignedIn() middleware)
+   */
+  async function verifyProjectVisibleFromRunCaseId(req, res, next) {
+    const RunCase = defineRunCase(sequelize, DataTypes);
+    const Run = defineRun(sequelize, DataTypes);
+
+    const runCaseId = req.params.runCaseId || req.query.runCaseId || req.body.runCaseId;
+    if (!runCaseId) {
+      return res.status(400).json({ error: 'runCaseId is required' });
+    }
+
+    // find project id from runCaseId
+    const runCase = await RunCase.findByPk(runCaseId);
+    if (!runCase) {
+      return res.status(404).send('failed to find runCase');
+    }
+
+    const run = await Run.findByPk(runCase.runId);
+    const projectId = run && run.projectId;
+    if (!projectId) {
+      return res.status(404).send('failed to find projectId');
+    }
+
+    const isVisble = await isVisible(projectId, req.userId);
+    if (isVisble) {
+      next();
+      return;
+    }
+
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
   async function isVisible(projectId, userId) {
     const Project = defineProject(sequelize, DataTypes);
     const Member = defineMember(sequelize, DataTypes);
@@ -158,5 +193,6 @@ export default function verifyVisibleMiddleware(sequelize) {
     verifyProjectVisibleFromFolderId,
     verifyProjectVisibleFromCaseId,
     verifyProjectVisibleFromRunId,
+    verifyProjectVisibleFromRunCaseId,
   };
 }

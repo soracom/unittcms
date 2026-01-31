@@ -6,6 +6,7 @@ import defineFolder from '../../models/folders.js';
 import defineCase from '../../models/cases.js';
 import defineTag from '../../models/tags.js';
 import defineRunCase from '../../models/runCases.js';
+import defineComment from '../../models/comments.js';
 import authMiddleware from '../../middleware/auth.js';
 import visibilityMiddleware from '../../middleware/verifyVisible.js';
 
@@ -15,6 +16,7 @@ export default function (sequelize) {
   const Case = defineCase(sequelize, DataTypes);
   const RunCase = defineRunCase(sequelize, DataTypes);
   const Tags = defineTag(sequelize, DataTypes);
+  const Comment = defineComment(sequelize, DataTypes);
   Project.hasMany(Folder, { foreignKey: 'projectId' });
   Folder.hasMany(Case, { foreignKey: 'folderId' });
   Folder.belongsTo(Project, { foreignKey: 'projectId' });
@@ -23,6 +25,7 @@ export default function (sequelize) {
   Case.belongsToMany(Tags, { through: 'caseTags', foreignKey: 'caseId', otherKey: 'tagId' });
   Tags.belongsToMany(Case, { through: 'caseTags', foreignKey: 'tagId', otherKey: 'caseId' });
   RunCase.belongsTo(Case, { foreignKey: 'caseId' });
+  RunCase.hasMany(Comment, { foreignKey: 'runCaseId' });
   const { verifySignedIn } = authMiddleware(sequelize);
   const { verifyProjectVisibleFromProjectId } = visibilityMiddleware(sequelize);
   const { verifyProjectVisibleFromRunId } = visibilityMiddleware(sequelize);
@@ -115,9 +118,25 @@ export default function (sequelize) {
               where: {
                 [Op.and]: [{ runId: runId }, statusFilter],
               },
+              include: [
+                {
+                  model: Comment,
+                  attributes: [],
+                },
+              ],
             },
             tagInclude,
           ],
+          attributes: {
+            include: [
+              [
+                sequelize.literal(
+                  '(SELECT COUNT(*) FROM comments WHERE comments.runCaseId = RunCases.id)'
+                ),
+                'commentCount',
+              ],
+            ],
+          },
         });
         res.json(cases);
       } catch (error) {
