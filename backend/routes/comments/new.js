@@ -2,16 +2,20 @@ import express from 'express';
 const router = express.Router();
 import { DataTypes } from 'sequelize';
 import defineComment from '../../models/comments.js';
+import defineUser from '../../models/users.js';
 import authMiddleware from '../../middleware/auth.js';
 import editableMiddleware from '../../middleware/verifyEditable.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectReporterFromRunCaseId } = editableMiddleware(sequelize);
+  const { verifyProjectReporterFromCommentableId } = editableMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
+  const User = defineUser(sequelize, DataTypes);
+  Comment.belongsTo(User, { foreignKey: 'userId' });
 
-  router.post('/new', verifySignedIn, verifyProjectReporterFromRunCaseId, async (req, res) => {
-    const { commentableType, commentableId, content } = req.body;
+  router.post('/', verifySignedIn, verifyProjectReporterFromCommentableId, async (req, res) => {
+    const { commentableType, commentableId } = req.query;
+    const { content } = req.body;
 
     if (!commentableType || !commentableId || !content) {
       return res.status(400).json({ error: 'commentableType, commentableId, and content are required' });
@@ -30,7 +34,7 @@ export default function (sequelize) {
         include: [
           {
             model: sequelize.models.User,
-            attributes: ['id', 'name', 'email'],
+            attributes: ['id', 'username', 'email'],
           },
         ],
       });

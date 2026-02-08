@@ -8,13 +8,13 @@ import visibilityMiddleware from '../../middleware/verifyVisible.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectVisibleFromProjectId } = visibilityMiddleware(sequelize);
+  const { verifyProjectVisibleFromCommentableId } = visibilityMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
   const User = defineUser(sequelize, DataTypes);
   Comment.belongsTo(User, { foreignKey: 'userId', onDelete: 'CASCADE' });
   User.hasMany(Comment, { foreignKey: 'userId', onDelete: 'CASCADE' });
 
-  router.get('/', verifySignedIn, verifyProjectVisibleFromProjectId, async (req, res) => {
+  router.get('/', verifySignedIn, verifyProjectVisibleFromCommentableId, async (req, res) => {
     const { commentableType, commentableId } = req.query;
 
     if (!commentableType || !commentableId) {

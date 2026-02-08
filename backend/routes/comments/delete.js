@@ -3,22 +3,20 @@ const router = express.Router();
 import { DataTypes } from 'sequelize';
 import defineComment from '../../models/comments.js';
 import authMiddleware from '../../middleware/auth.js';
-import editableMiddleware from '../../middleware/verifyEditable.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectReporterFromRunCaseId } = editableMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
 
-  router.post('/delete', verifySignedIn, verifyProjectReporterFromRunCaseId, async (req, res) => {
-    const { id } = req.body;
+  router.delete('/:commentId', verifySignedIn, async (req, res) => {
+    const commentId = req.params.commentId;
 
-    if (!id) {
-      return res.status(400).json({ error: 'id is required' });
+    if (!commentId) {
+      return res.status(400).json({ error: 'commentId is required' });
     }
 
     try {
-      const comment = await Comment.findByPk(id);
+      const comment = await Comment.findByPk(commentId);
       if (!comment) {
         return res.status(404).json({ error: 'Comment not found' });
       }

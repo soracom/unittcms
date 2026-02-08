@@ -4,6 +4,7 @@ import defineProject from '../models/projects.js';
 import defineFolder from '../models/folders.js';
 import defineCase from '../models/cases.js';
 import defineRun from '../models/runs.js';
+import defineRunCase from '../models/runCases.js';
 
 export default function verifyVisibleMiddleware(sequelize) {
   /**
@@ -117,6 +118,51 @@ export default function verifyVisibleMiddleware(sequelize) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
+  async function verifyProjectVisibleFromCommentableId(req, res, next) {
+    const commentableType = req.params.commentableType || req.query.commentableType;
+    const commentableId = req.params.commentableId || req.query.commentableId;
+    if (!commentableType || !commentableId) {
+      return res.status(400).json({ error: 'commentableType and commentableId are required' });
+    }
+
+    if (commentableType === 'Run') {
+      // not implemented yet
+      next();
+      return;
+    } else if (commentableType === 'Case') {
+      // not implemented yet
+      next();
+      return;
+    } else if (commentableType === 'RunCase') {
+      const RunCase = defineRunCase(sequelize, DataTypes);
+      const runCaseId = req.params.commentableId || req.query.commentableId;
+      if (!runCaseId) {
+        return res.status(400).json({ error: 'runCaseId is required' });
+      }
+
+      const runCase = await RunCase.findByPk(runCaseId);
+      const runId = runCase && runCase.runId;
+      if (!runId) {
+        return res.status(404).send('failed to find runId');
+      }
+
+      const Run = defineRun(sequelize, DataTypes);
+      const run = await Run.findByPk(runId);
+      const projectId = run && run.projectId;
+      if (!projectId) {
+        return res.status(404).send('failed to find projectId');
+      }
+
+      const isVisble = await isVisible(projectId, req.userId);
+      if (isVisble) {
+        next();
+        return;
+      }
+    } else {
+      return res.status(400).json({ error: 'unsupported commentableType' });
+    }
+  }
+
   async function isVisible(projectId, userId) {
     const Project = defineProject(sequelize, DataTypes);
     const Member = defineMember(sequelize, DataTypes);
@@ -158,5 +204,6 @@ export default function verifyVisibleMiddleware(sequelize) {
     verifyProjectVisibleFromFolderId,
     verifyProjectVisibleFromCaseId,
     verifyProjectVisibleFromRunId,
+    verifyProjectVisibleFromCommentableId,
   };
 }

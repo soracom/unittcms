@@ -6,9 +6,9 @@ type CommentType = {
   content: string;
   createdAt: string;
   updatedAt: string;
-  User?: {
+  User: {
     id: number;
-    name: string;
+    username: string;
     email: string;
   };
 };

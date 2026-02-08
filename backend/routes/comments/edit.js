@@ -2,23 +2,27 @@ import express from 'express';
 const router = express.Router();
 import { DataTypes } from 'sequelize';
 import defineComment from '../../models/comments.js';
+import defineUser from '../../models/users.js';
 import authMiddleware from '../../middleware/auth.js';
 import editableMiddleware from '../../middleware/verifyEditable.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectReporterFromRunCaseId } = editableMiddleware(sequelize);
+  const { verifyProjectReporterFromCommentableId } = editableMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
+  const User = defineUser(sequelize, DataTypes);
+  Comment.belongsTo(User, { foreignKey: 'userId' });
 
-  router.post('/edit', verifySignedIn, verifyProjectReporterFromRunCaseId, async (req, res) => {
-    const { id, content } = req.body;
+  router.put('/:commentId', verifySignedIn, verifyProjectReporterFromCommentableId, async (req, res) => {
+    const commentId = req.params.commentId;
+    const { content } = req.body;
 
-    if (!id || !content) {
+    if (!commentId || !content) {
       return res.status(400).json({ error: 'id and content are required' });
     }
 
     try {
-      const comment = await Comment.findByPk(id);
+      const comment = await Comment.findByPk(commentId);
       if (!comment) {
         return res.status(404).json({ error: 'Comment not found' });
       }
@@ -31,7 +35,7 @@ export default function (sequelize) {
       await comment.update({ content });
 
       // Fetch the comment with user data
-      const commentWithUser = await Comment.findByPk(id, {
+      const commentWithUser = await Comment.findByPk(commentId, {
         include: [
           {
             model: sequelize.models.User,
