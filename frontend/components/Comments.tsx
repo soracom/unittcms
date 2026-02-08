@@ -3,7 +3,7 @@ import { useEffect, useState, useContext } from 'react';
 import { Button, Textarea, Spinner, addToast } from '@heroui/react';
 import CommentItem from './CommentItem';
 import { TokenContext } from '@/utils/TokenProvider';
-import { fetchComments, createComment } from '@/utils/commentControl';
+import { fetchComments, createComment, updateComment, deleteComment } from '@/utils/commentControl';
 import { logError } from '@/utils/errorHandler';
 import type { CommentType } from '@/types/comment';
 
@@ -20,7 +20,8 @@ export default function Comments({ projectId, commentableType, commentableId, on
   const [isLoading, setIsLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [isAdding, setIsAdding] = useState(false);
+  const [editContent, setEditContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     async function loadComments() {
@@ -46,16 +47,17 @@ export default function Comments({ projectId, commentableType, commentableId, on
   const handleAddComment = async () => {
     if (!newComment.trim() || !commentableType || !commentableId) return;
 
-    setIsAdding(true);
+    setIsSubmitting(true);
     try {
       const comment = await createComment(context.token.access_token, commentableType, commentableId, newComment);
       if (!comment) {
         throw new Error('Failed to create comment');
       }
-      setComments([...comments, comment]);
+      const updatedComments = [...comments, comment];
+      setComments(updatedComments);
       setNewComment('');
       if (onCommentCountChange) {
-        onCommentCountChange(comments.length + 1);
+        onCommentCountChange(updatedComments.length);
       }
       addToast({
         title: 'Success',
@@ -70,7 +72,69 @@ export default function Comments({ projectId, commentableType, commentableId, on
         description: 'Failed to add comment',
       });
     } finally {
-      setIsAdding(false);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleStartEdit = (id: number, content: string) => {
+    setEditingId(id);
+    setEditContent(content);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditContent('');
+  };
+
+  const handleSaveEdit = async (id: number) => {
+    if (!editContent.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      await updateComment(context.token.access_token, id, editContent);
+      setComments(comments.map((c) => (c.id === id ? { ...c, content: editContent } : c)));
+      setEditingId(null);
+      setEditContent('');
+      addToast({
+        title: 'Success',
+        color: 'success',
+        description: 'Comment updated',
+      });
+    } catch (error: unknown) {
+      logError('Error updating comment', error);
+      addToast({
+        title: 'Error',
+        color: 'danger',
+        description: 'Failed to update comment',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteComment = async (id: number) => {
+    setIsSubmitting(true);
+    try {
+      await deleteComment(context.token.access_token, id);
+      const updatedComments = comments.filter((c) => c.id !== id);
+      setComments(updatedComments);
+      if (onCommentCountChange) {
+        onCommentCountChange(updatedComments.length);
+      }
+      addToast({
+        title: 'Success',
+        color: 'success',
+        description: 'Comment deleted',
+      });
+    } catch (error: unknown) {
+      logError('Error deleting comment', error);
+      addToast({
+        title: 'Error',
+        color: 'danger',
+        description: 'Failed to delete comment',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -79,8 +143,8 @@ export default function Comments({ projectId, commentableType, commentableId, on
       <div className="h-full text-default-500 flex items-center justify-center">
         <div className="text-center">
           <p>No entity selected</p>
-          <div>{!commentableType && <p>Please select a type</p>}</div>
-          <div>{!commentableId && <p>Please select an ID</p>}</div>
+          {!commentableType && <p>Please select a type</p>}
+          {!commentableId && <p>Please select an ID</p>}
         </div>
       </div>
     );
@@ -94,28 +158,10 @@ export default function Comments({ projectId, commentableType, commentableId, on
     );
   }
 
-  return (
-    <div className="h-full">
-      <div className="mb-4">
-        <Textarea
-          placeholder="Write a comment..."
-          value={newComment}
-          onValueChange={setNewComment}
-          minRows={3}
-          isDisabled={!projectId || !context.isProjectReporter(Number(projectId)) || isAdding}
-        />
-        <Button
-          color="primary"
-          size="sm"
-          className="mt-2"
-          onPress={handleAddComment}
-          isLoading={isAdding}
-          isDisabled={!newComment.trim() || !projectId || !context.isProjectReporter(Number(projectId))}
-        >
-          Comment
-        </Button>
-      </div>
+  const canComment = projectId && context.isProjectReporter(Number(projectId));
 
+  return (
+    <div className="h-full flex flex-col justify-between">
       {comments.length === 0 ? (
         <div className="text-center text-default-400 py-8">
           <p>No comments yet</p>
@@ -127,12 +173,39 @@ export default function Comments({ projectId, commentableType, commentableId, on
               key={comment.id}
               comment={comment}
               isEditing={editingId === comment.id}
-              onStartEdit={setEditingId}
-              onEndEdit={() => setEditingId(null)}
+              canEdit={comment.userId === context.token.user?.id}
+              editContent={editContent}
+              isSubmitting={isSubmitting}
+              onEditContentChange={setEditContent}
+              onStartEdit={() => handleStartEdit(comment.id, comment.content)}
+              onCancelEdit={handleCancelEdit}
+              onSave={() => handleSaveEdit(comment.id)}
+              onDelete={() => handleDeleteComment(comment.id)}
             />
           ))}
         </div>
       )}
+
+      <div className="mt-12">
+        <Textarea
+          placeholder="Write a comment..."
+          value={newComment}
+          onValueChange={setNewComment}
+          minRows={3}
+          variant="bordered"
+          isDisabled={!canComment || isSubmitting}
+        />
+        <Button
+          color="primary"
+          size="sm"
+          className="mt-2"
+          onPress={handleAddComment}
+          isLoading={isSubmitting}
+          isDisabled={!newComment.trim() || !canComment}
+        >
+          Comment
+        </Button>
+      </div>
     </div>
   );
 }

@@ -72,7 +72,7 @@ export default function TestCaseDetailPane({
     return <div>loading...</div>;
   } else {
     return (
-      <div className="flex w-full flex-col p-3">
+      <div className="flex h-full w-full flex-col p-3">
         <Tabs aria-label="Options" size="sm">
           <Tab key="caseDetail" title="Case Detail">
             <CaseDetail
