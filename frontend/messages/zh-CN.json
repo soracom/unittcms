@@ -354,7 +354,25 @@
     "selected": "已选择",
     "tags": "标签",
     "select_tags": "选择标签",
-    "no_case_selected": "未选择测试用例"
+    "no_case_selected": "未选择测试用例",
+    "case_detail": "测试用例详情",
+    "comments": "评论",
+    "history": "历史"
+  },
+  "Comments": {
+    "comments": "评论",
+    "no_comments": "暂无评论",
+    "add_comment": "添加评论",
+    "save": "保存",
+    "cancel": "取消",
+    "placeholder": "输入评论...",
+    "not_included_in_run": "无法对未包含在测试运行中的测试用例进行评论",
+    "comment_added": "评论已添加",
+    "failed_to_add_comment": "添加评论失败",
+    "comment_updated": "评论已更新",
+    "failed_to_update_comment": "更新评论失败",
+    "comment_deleted": "评论已删除",
+    "failed_to_delete_comment": "删除评论失败"
   },
   "Members": {
     "member_management": "成员管理",

@@ -17,7 +17,6 @@ export async function fetchComments(
   };
 
   const url = `${apiServer}/comments?commentableType=${commentableType}&commentableId=${commentableId}`;
-
   try {
     const response = await fetch(url, fetchOptions);
 
@@ -47,10 +46,7 @@ export async function createComment(
     body: JSON.stringify({ content }),
   };
 
-  console.log(fetchOptions);
-
   const url = `${apiServer}/comments/?commentableType=${commentableType}&commentableId=${commentableId}`;
-
   try {
     const response = await fetch(url, fetchOptions);
     if (!response.ok) {
@@ -99,7 +95,6 @@ export async function deleteComment(jwt: string, commentId: number): Promise<voi
   };
 
   const url = `${apiServer}/comments/${commentId}`;
-
   try {
     const response = await fetch(url, fetchOptions);
 

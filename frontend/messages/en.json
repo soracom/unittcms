@@ -354,7 +354,25 @@
     "selected": "Selected",
     "tags": "Tags",
     "select_tags": "Select tags",
-    "no_case_selected": "No test case selected"
+    "no_case_selected": "No test case selected",
+    "case_detail": "Test case detail",
+    "comments": "Comments",
+    "history": "History"
+  },
+  "Comments": {
+    "comments": "Comments",
+    "no_comments": "No comments",
+    "add_comment": "Add comment",
+    "save": "Save",
+    "cancel": "Cancel",
+    "placeholder": "Enter a comment...",
+    "not_included_in_run": "Cannot comment on test cases not included in the test run",
+    "comment_added": "Comment added",
+    "failed_to_add_comment": "Failed to add comment",
+    "comment_updated": "Comment updated",
+    "failed_to_update_comment": "Failed to update comment",
+    "comment_deleted": "Comment deleted",
+    "failed_to_delete_comment": "Failed to delete comment"
   },
   "Members": {
     "member_management": "Member Management",

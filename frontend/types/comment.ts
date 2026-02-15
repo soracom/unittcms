@@ -17,13 +17,16 @@ type CommentMessages = {
   comments: string;
   noComments: string;
   addComment: string;
-  editComment: string;
-  deleteComment: string;
   save: string;
   cancel: string;
-  delete: string;
-  areYouSure: string;
   placeholder: string;
+  notIncludedInRun: string;
+  commentAdded: string;
+  failedToAddComment: string;
+  commentUpdated: string;
+  failedToUpdateComment: string;
+  commentDeleted: string;
+  failedToDeleteComment: string;
 };
 
 export type { CommentType, CommentMessages };

@@ -89,6 +89,7 @@ type RunMessages = {
   selected: string;
   tags: string;
   selectTags: string;
+  comments: string;
 };
 
 type RunDetailMessages = {
@@ -102,6 +103,9 @@ type RunDetailMessages = {
   preconditions: string;
   expectedResult: string;
   detailsOfTheStep: string;
+  caseDetail: string;
+  comments: string;
+  history: string;
 };
 
 export type {

@@ -15,7 +15,7 @@ import {
   SortDescriptor,
   Chip,
 } from '@heroui/react';
-import { ChevronDown, MoreVertical, CopyPlus, CopyMinus, MessageSquare } from 'lucide-react';
+import { ChevronDown, MoreVertical, CopyPlus, CopyMinus, MessageCircle } from 'lucide-react';
 import RunCaseStatus from './RunCaseStatus';
 import { Link, NextUiLinkClasses } from '@/src/i18n/routing';
 import { testRunCaseStatus } from '@/config/selection';
@@ -116,8 +116,7 @@ export default function TestCaseSelector({
     const cellValue = testCase[columnKey as keyof CaseType];
     const isIncluded = isCaseIncluded(testCase);
     const runStatus = testCase.RunCases && testCase.RunCases.length > 0 ? testCase.RunCases[0].status : 0;
-    const commentCount =
-      testCase.RunCases && testCase.RunCases.length > 0 ? testCase.RunCases[0].commentCount || 0 : 0;
+    const commentCount = testCase.RunCases && testCase.RunCases.length > 0 ? testCase.RunCases[0].commentCount || 0 : 0;
 
     switch (columnKey) {
       case 'title':
@@ -187,12 +186,12 @@ export default function TestCaseSelector({
           <div className={isIncluded ? '' : notIncludedCaseClass}>
             {isIncluded && commentCount > 0 ? (
               <Link
-                href={`/projects/${projectId}/runs/${runId}/cases/${testCase.id}#comments`}
+                href={`/projects/${projectId}/runs/${runId}/cases/${testCase.id}?tab=comments`}
                 locale={locale}
                 className="flex items-center gap-1"
                 onPointerDown={(e) => e.stopPropagation()}
               >
-                <MessageSquare size={16} />
+                <MessageCircle size={16} />
                 <span>{commentCount}</span>
               </Link>
             ) : (

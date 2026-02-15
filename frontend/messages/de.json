@@ -354,7 +354,25 @@
     "selected": "Ausgewählt",
     "tags": "Tags",
     "select_tags": "Tags auswählen",
-    "no_case_selected": "Kein Testfall ausgewählt"
+    "no_case_selected": "Kein Testfall ausgewählt",
+    "case_detail": "Testfall-Details",
+    "comments": "Kommentare",
+    "history": "Verlauf"
+  },
+  "Comments": {
+    "comments": "Kommentare",
+    "no_comments": "Keine Kommentare",
+    "add_comment": "Kommentar hinzufügen",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "placeholder": "Kommentar eingeben...",
+    "not_included_in_run": "Kann keine Kommentare zu Testfällen abgeben, die nicht im Testlauf enthalten sind",
+    "comment_added": "Kommentar hinzugefügt",
+    "failed_to_add_comment": "Fehler beim Hinzufügen des Kommentars",
+    "comment_updated": "Kommentar aktualisiert",
+    "failed_to_update_comment": "Fehler beim Aktualisieren des Kommentars",
+    "comment_deleted": "Kommentar gelöscht",
+    "failed_to_delete_comment": "Fehler beim Löschen des Kommentars"
   },
   "Members": {
     "member_management": "Mitgliederverwaltung",

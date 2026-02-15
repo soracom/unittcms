@@ -4,16 +4,14 @@ import { DataTypes } from 'sequelize';
 import defineComment from '../../models/comments.js';
 import defineUser from '../../models/users.js';
 import authMiddleware from '../../middleware/auth.js';
-import editableMiddleware from '../../middleware/verifyEditable.js';
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
-  const { verifyProjectReporterFromCommentableId } = editableMiddleware(sequelize);
   const Comment = defineComment(sequelize, DataTypes);
   const User = defineUser(sequelize, DataTypes);
   Comment.belongsTo(User, { foreignKey: 'userId' });
 
-  router.put('/:commentId', verifySignedIn, verifyProjectReporterFromCommentableId, async (req, res) => {
+  router.put('/:commentId', verifySignedIn, async (req, res) => {
     const commentId = req.params.commentId;
     const { content } = req.body;
 
@@ -39,7 +37,7 @@ export default function (sequelize) {
         include: [
           {
             model: sequelize.models.User,
-            attributes: ['id', 'name', 'email'],
+            attributes: ['id', 'username', 'email'],
           },
         ],
       });

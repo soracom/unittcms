@@ -354,7 +354,25 @@
     "selected": "選択済み",
     "tags": "タグ",
     "select_tags": "タグを選択",
-    "no_case_selected": "テストケースが選択されていません"
+    "no_case_selected": "テストケースが選択されていません",
+    "case_detail": "テストケース詳細",
+    "comments": "コメント",
+    "history": "履歴"
+  },
+  "Comments": {
+    "comments": "コメント",
+    "no_comments": "コメントがありません",
+    "add_comment": "コメントを追加",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "placeholder": "コメントを入力...",
+    "not_included_in_run": "テストランに含まれていないテストケースにはコメントできません",
+    "comment_added": "コメントが追加されました",
+    "failed_to_add_comment": "コメントの追加に失敗しました",
+    "comment_updated": "コメントが更新されました",
+    "failed_to_update_comment": "コメントの更新に失敗しました",
+    "comment_deleted": "コメントが削除されました",
+    "failed_to_delete_comment": "コメントの削除に失敗しました"
   },
   "Members": {
     "member_management": "メンバー管理",

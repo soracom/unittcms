@@ -1,7 +1,7 @@
 import { Button, Textarea, Card, CardBody } from '@heroui/react';
 import { Trash2, Edit2 } from 'lucide-react';
 import UserAvatar from './UserAvatar';
-import { CommentType } from '@/types/comment';
+import { CommentMessages, CommentType } from '@/types/comment';
 
 type Props = {
   comment: CommentType;
@@ -9,6 +9,7 @@ type Props = {
   canEdit: boolean;
   editContent: string;
   isSubmitting: boolean;
+  messages: CommentMessages;
   onEditContentChange: (value: string) => void;
   onStartEdit: () => void;
   onCancelEdit: () => void;
@@ -22,6 +23,7 @@ export default function CommentItem({
   canEdit,
   editContent,
   isSubmitting,
+  messages,
   onEditContentChange,
   onStartEdit,
   onCancelEdit,
@@ -67,10 +69,10 @@ export default function CommentItem({
                 />
                 <div className="flex gap-2 mt-2">
                   <Button size="sm" color="primary" onPress={onSave} isLoading={isSubmitting}>
-                    Save
+                    {messages.save}
                   </Button>
                   <Button size="sm" variant="bordered" onPress={onCancelEdit} isDisabled={isSubmitting}>
-                    Cancel
+                    {messages.cancel}
                   </Button>
                 </div>
               </div>

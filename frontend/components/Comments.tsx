@@ -5,16 +5,16 @@ import CommentItem from './CommentItem';
 import { TokenContext } from '@/utils/TokenProvider';
 import { fetchComments, createComment, updateComment, deleteComment } from '@/utils/commentControl';
 import { logError } from '@/utils/errorHandler';
-import type { CommentType } from '@/types/comment';
+import type { CommentMessages, CommentType } from '@/types/comment';
 
 type Props = {
   projectId: string;
   commentableType: 'RunCase' | 'Run' | 'Case';
   commentableId?: number;
-  onCommentCountChange?: (count: number) => void;
+  messages: CommentMessages;
 };
 
-export default function Comments({ projectId, commentableType, commentableId, onCommentCountChange }: Props) {
+export default function Comments({ projectId, commentableType, commentableId, messages }: Props) {
   const context = useContext(TokenContext);
   const [comments, setComments] = useState<CommentType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,9 +31,6 @@ export default function Comments({ projectId, commentableType, commentableId, on
       try {
         const data = await fetchComments(context.token.access_token, commentableType, commentableId);
         setComments(data);
-        if (onCommentCountChange) {
-          onCommentCountChange(data.length);
-        }
       } catch (error: unknown) {
         logError('Error fetching comments', error);
       } finally {
@@ -42,7 +39,7 @@ export default function Comments({ projectId, commentableType, commentableId, on
     }
 
     loadComments();
-  }, [commentableType, commentableId, context, onCommentCountChange]);
+  }, [commentableType, commentableId, context]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !commentableType || !commentableId) return;
@@ -56,20 +53,17 @@ export default function Comments({ projectId, commentableType, commentableId, on
       const updatedComments = [...comments, comment];
       setComments(updatedComments);
       setNewComment('');
-      if (onCommentCountChange) {
-        onCommentCountChange(updatedComments.length);
-      }
       addToast({
         title: 'Success',
         color: 'success',
-        description: 'Comment added',
+        description: messages.commentAdded,
       });
     } catch (error: unknown) {
       logError('Error adding comment', error);
       addToast({
         title: 'Error',
         color: 'danger',
-        description: 'Failed to add comment',
+        description: messages.failedToAddComment,
       });
     } finally {
       setIsSubmitting(false);
@@ -98,14 +92,14 @@ export default function Comments({ projectId, commentableType, commentableId, on
       addToast({
         title: 'Success',
         color: 'success',
-        description: 'Comment updated',
+        description: messages.commentUpdated,
       });
     } catch (error: unknown) {
       logError('Error updating comment', error);
       addToast({
         title: 'Error',
         color: 'danger',
-        description: 'Failed to update comment',
+        description: messages.failedToUpdateComment,
       });
     } finally {
       setIsSubmitting(false);
@@ -118,20 +112,17 @@ export default function Comments({ projectId, commentableType, commentableId, on
       await deleteComment(context.token.access_token, id);
       const updatedComments = comments.filter((c) => c.id !== id);
       setComments(updatedComments);
-      if (onCommentCountChange) {
-        onCommentCountChange(updatedComments.length);
-      }
       addToast({
         title: 'Success',
         color: 'success',
-        description: 'Comment deleted',
+        description: messages.commentDeleted,
       });
     } catch (error: unknown) {
       logError('Error deleting comment', error);
       addToast({
         title: 'Error',
         color: 'danger',
-        description: 'Failed to delete comment',
+        description: messages.failedToDeleteComment,
       });
     } finally {
       setIsSubmitting(false);
@@ -140,12 +131,8 @@ export default function Comments({ projectId, commentableType, commentableId, on
 
   if (!commentableType || !commentableId) {
     return (
-      <div className="h-full text-default-500 flex items-center justify-center">
-        <div className="text-center">
-          <p>No entity selected</p>
-          {!commentableType && <p>Please select a type</p>}
-          {!commentableId && <p>Please select an ID</p>}
-        </div>
+      <div className="text-default-500 text-sm">
+        {commentableType === 'RunCase' && !commentableId ? <p>{messages.notIncludedInRun}</p> : <p>Unknown state</p>}
       </div>
     );
   }
@@ -164,7 +151,7 @@ export default function Comments({ projectId, commentableType, commentableId, on
     <div className="h-full flex flex-col justify-between">
       {comments.length === 0 ? (
         <div className="text-center text-default-400 py-8">
-          <p>No comments yet</p>
+          <p>{messages.noComments}</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -176,6 +163,7 @@ export default function Comments({ projectId, commentableType, commentableId, on
               canEdit={comment.userId === context.token.user?.id}
               editContent={editContent}
               isSubmitting={isSubmitting}
+              messages={messages}
               onEditContentChange={setEditContent}
               onStartEdit={() => handleStartEdit(comment.id, comment.content)}
               onCancelEdit={handleCancelEdit}
@@ -188,7 +176,7 @@ export default function Comments({ projectId, commentableType, commentableId, on
 
       <div className="mt-12">
         <Textarea
-          placeholder="Write a comment..."
+          placeholder={messages.placeholder}
           value={newComment}
           onValueChange={setNewComment}
           minRows={3}
@@ -203,7 +191,7 @@ export default function Comments({ projectId, commentableType, commentableId, on
           isLoading={isSubmitting}
           isDisabled={!newComment.trim() || !canComment}
         >
-          Comment
+          {messages.addComment}
         </Button>
       </div>
     </div>

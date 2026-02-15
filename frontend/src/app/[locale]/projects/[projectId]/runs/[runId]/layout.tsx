@@ -51,6 +51,7 @@ export default function RunLayout({
     selected: t('selected'),
     tags: t('tags'),
     selectTags: t('select_tags'),
+    comments: t('comments'),
   };
 
   const rst = useTranslations('RunStatus');

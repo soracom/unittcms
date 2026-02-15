@@ -354,7 +354,25 @@
     "selected": "Selecionado",
     "tags": "Tags",
     "select_tags": "Selecionar tags",
-    "no_case_selected": "Nenhum caso de teste selecionado"
+    "no_case_selected": "Nenhum caso de teste selecionado",
+    "case_detail": "Detalhe do caso de teste",
+    "comments": "Comentários",
+    "history": "Histórico"
+  },
+  "Comments": {
+    "comments": "Comentários",
+    "no_comments": "Nenhum comentário",
+    "add_comment": "Adicionar comentário",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "placeholder": "Digite um comentário...",
+    "not_included_in_run": "Não é possível comentar em casos de teste que não estão incluídos na execução de teste",
+    "comment_added": "Comentário adicionado",
+    "failed_to_add_comment": "Falha ao adicionar comentário",
+    "comment_updated": "Comentário atualizado",
+    "failed_to_update_comment": "Falha ao atualizar comentário",
+    "comment_deleted": "Comentário excluído",
+    "failed_to_delete_comment": "Falha ao excluir comentário"
   },
   "Members": {
     "member_management": "Gerenciamento de Membros",
