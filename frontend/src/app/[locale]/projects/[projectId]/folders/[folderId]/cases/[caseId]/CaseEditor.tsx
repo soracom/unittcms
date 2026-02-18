@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useContext, ChangeEvent, DragEvent } from 'react';
+import { useState, useEffect, useContext, useRef, ChangeEvent, DragEvent } from 'react';
 import { Input, Textarea, Select, SelectItem, Button, Divider, Tooltip, addToast, Badge } from '@heroui/react';
 import { Save, Plus, ArrowLeft, Circle } from 'lucide-react';
 import CaseStepsEditor from './CaseStepsEditor';
@@ -60,7 +60,7 @@ export default function CaseEditor({
   const [testCase, setTestCase] = useState<CaseType>(defaultTestCase);
   const [isTitleInvalid] = useState<boolean>(false);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  const [plusCount, setPlusCount] = useState<number>(0);
+  const nextTempStepIdRef = useRef(-1);
   const [isDirty, setIsDirty] = useState(false);
   const [selectedTags, setSelectedTags] = useState<{ id: number; name: string }[]>([]);
 
@@ -69,8 +69,10 @@ export default function CaseEditor({
 
   const onPlusClick = async (newStepNo: number) => {
     setIsDirty(true);
+    const tempId = nextTempStepIdRef.current;
+    nextTempStepIdRef.current -= 1;
     const newStep: StepType = {
-      id: plusCount,
+      id: tempId,
       step: '',
       result: '',
       createdAt: new Date(),
@@ -78,17 +80,19 @@ export default function CaseEditor({
       caseSteps: {
         stepNo: newStepNo,
       },
-      uid: `uid${plusCount}`,
+      uid: `temp-${tempId}`,
       editState: 'new',
     };
-    setPlusCount(plusCount + 1);
 
-    if (testCase.Steps) {
-      const updatedSteps = testCase.Steps.map((step) => {
+    setTestCase((prevCase) => {
+      const prevSteps = prevCase.Steps ?? [];
+      const updatedSteps = prevSteps.map((step): StepType => {
         if (step.caseSteps.stepNo >= newStepNo) {
+          const nextEditState: StepType['editState'] =
+            step.editState === 'notChanged' ? 'changed' : step.editState;
           return {
             ...step,
-            editState: step.editState === 'notChanged' ? 'changed' : step.editState,
+            editState: nextEditState,
             caseSteps: {
               ...step.caseSteps,
               stepNo: step.caseSteps.stepNo + 1,
@@ -100,30 +104,40 @@ export default function CaseEditor({
 
       updatedSteps.push(newStep);
 
-      setTestCase({
-        ...testCase,
+      return {
+        ...prevCase,
         Steps: updatedSteps,
-      });
-    }
+      };
+    });
   };
 
   const onDeleteClick = async (stepId: number) => {
     setIsDirty(true);
 
     // find deletedStep's stepNo
-    if (testCase.Steps) {
-      const deletedStep = testCase.Steps.find((step) => step.id === stepId);
+    setTestCase((prevCase) => {
+      if (!prevCase.Steps) {
+        return prevCase;
+      }
+      const deletedStep = prevCase.Steps.find((step) => step.id === stepId);
       if (!deletedStep) {
-        return;
+        return prevCase;
       }
       const deletedStepNo = deletedStep.caseSteps.stepNo;
-      deletedStep.editState = 'deleted';
 
-      const updatedSteps = testCase.Steps.map((step) => {
-        if (step.caseSteps.stepNo > deletedStepNo) {
+      const updatedSteps = prevCase.Steps.map((step): StepType => {
+        if (step.id === stepId) {
           return {
             ...step,
-            editState: step.editState === 'notChanged' ? 'changed' : step.editState,
+            editState: 'deleted',
+          };
+        }
+        if (step.caseSteps.stepNo > deletedStepNo) {
+          const nextEditState: StepType['editState'] =
+            step.editState === 'notChanged' ? 'changed' : step.editState;
+          return {
+            ...step,
+            editState: nextEditState,
             caseSteps: {
               ...step.caseSteps,
               stepNo: step.caseSteps.stepNo - 1,
@@ -133,11 +147,11 @@ export default function CaseEditor({
         return step;
       });
 
-      setTestCase({
-        ...testCase,
+      return {
+        ...prevCase,
         Steps: updatedSteps,
-      });
-    }
+      };
+    });
   };
 
   const handleDrop = (event: DragEvent<HTMLElement>) => {
@@ -201,18 +215,20 @@ export default function CaseEditor({
       changeStep.editState = 'changed';
     }
 
-    if (testCase.Steps) {
-      setTestCase({
-        ...testCase,
-        Steps: testCase.Steps.map((step) => {
+    setTestCase((prevCase) => {
+      if (!prevCase.Steps) {
+        return prevCase;
+      }
+      return {
+        ...prevCase,
+        Steps: prevCase.Steps.map((step) => {
           if (step.id === stepId) {
             return changeStep;
-          } else {
-            return step;
           }
+          return step;
         }),
-      });
-    }
+      };
+    });
   };
 
   useEffect(() => {
@@ -220,10 +236,16 @@ export default function CaseEditor({
       if (!tokenContext.isSignedIn()) return;
       try {
         const data = await fetchCase(tokenContext.token.access_token, Number(caseId));
-        data.Steps.forEach((step: StepType) => {
-          step.editState = 'notChanged';
+        const normalizedSteps =
+          data.Steps?.map((step: StepType) => ({
+            ...step,
+            editState: 'notChanged',
+            uid: step.uid ?? `step-${step.id}`,
+          })) ?? [];
+        setTestCase({
+          ...data,
+          Steps: normalizedSteps,
         });
-        setTestCase(data);
         if (data.Tags) {
           setSelectedTags(Array.isArray(data.Tags) ? data.Tags : []);
         }
