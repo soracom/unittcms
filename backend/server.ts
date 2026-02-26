@@ -50,10 +50,6 @@ export const sequelize = new Sequelize({
 // Register TSOA-generated routes (TypeScript controllers)
 RegisterRoutes(app);
 
-// "/"
-import indexRoute from './routes/index.js';
-app.use('/', indexRoute());
-
 // "users"
 import usersIndexRoute from './routes/users/index.js';
 import usersFindRoute from './routes/users/find.js';
