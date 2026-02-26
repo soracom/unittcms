@@ -1,7 +1,7 @@
 import { Controller, Get, Route, Tags, Response } from 'tsoa';
 
 interface HealthResponse {
-  status: "ok";
+  status: 'ok';
 }
 
 /**
