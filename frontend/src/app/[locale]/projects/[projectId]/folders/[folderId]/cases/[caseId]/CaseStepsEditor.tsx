@@ -27,7 +27,7 @@ export default function StepsEditor({ isDisabled, steps, onStepUpdate, onStepPlu
       {filteredSteps.map((step, index) => (
         <div key={index} className="flex items-center my-1">
           <Avatar className="me-2" size="sm" name={step.caseSteps.stepNo.toString()} />
-          <div key={step.id} className="grow flex gap-2">
+          <div key={step.uid} className="grow flex gap-2">
             <div className="w-1/2">
               <Textarea
                 size="sm"
