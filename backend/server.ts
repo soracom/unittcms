@@ -1,12 +1,16 @@
 import path from 'path';
 import { fileURLToPath } from 'url';
-import express from 'express';
+import { readFileSync } from 'fs';
+import swaggerUi from 'swagger-ui-express';
+import express, { Application } from 'express';
 import cors from 'cors';
 import RateLimit from 'express-rate-limit';
 import { Sequelize } from 'sequelize';
+import { RegisterRoutes } from './routes.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
+const app: Application = express();
 
 // enable frontend access
 const frontendOrigin = process.env.FRONTEND_ORIGIN || 'http://localhost:8000';
@@ -30,21 +34,21 @@ app.use(limiter);
 // Specify the directory to serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 
-// init sequalize
+// Swagger UI
+const swaggerPath = path.join(__dirname, 'public/swagger.json');
+const swaggerDocument = JSON.parse(readFileSync(swaggerPath, 'utf8'));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+// init sequelize
 const databasePath = path.resolve(__dirname, 'database/database.sqlite');
-const sequelize = new Sequelize({
+export const sequelize = new Sequelize({
   dialect: 'sqlite',
   storage: databasePath,
   logging: false,
 });
 
-// "/"
-import indexRoute from './routes/index.js';
-app.use('/', indexRoute());
-
-// "/health"
-import healthIndexRoute from './routes/health/index.js';
-app.use('/health', healthIndexRoute());
+// Register TSOA-generated routes (TypeScript controllers)
+RegisterRoutes(app);
 
 // "users"
 import usersIndexRoute from './routes/users/index.js';
