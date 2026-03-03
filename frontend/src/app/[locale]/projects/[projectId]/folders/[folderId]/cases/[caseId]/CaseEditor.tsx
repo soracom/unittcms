@@ -209,12 +209,15 @@ export default function CaseEditor({
       return;
     }
 
-    const stepIndex = testCase.Steps.findIndex((step) => step.id === stepId);
-    testCase.Steps[stepIndex] = changeStep;
-
     setTestCase({
       ...testCase,
-      Steps: testCase.Steps,
+      Steps: testCase.Steps.map((step) => {
+        if (step.id === stepId) {
+          return changeStep;
+        } else {
+          return step;
+        }
+      }),
     });
   };
 
