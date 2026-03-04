@@ -2,29 +2,35 @@ import express from 'express';
 import { DataTypes } from 'sequelize';
 import defineUser from '../../models/users.js';
 import authMiddleware from '../../middleware/auth.js';
+import { SUPPORTED_LOCALES } from '../../config/locale.js';
 const router = express.Router();
 
 export default function (sequelize) {
   const { verifySignedIn } = authMiddleware(sequelize);
   const User = defineUser(sequelize, DataTypes);
 
-  router.put('/username', verifySignedIn, async (req, res) => {
+  router.put('/locale', verifySignedIn, async (req, res) => {
     try {
       const userId = req.userId;
-      const { username } = req.body;
-
-      if (!username || username.trim().length === 0) {
-        return res.status(400).send('Username is required');
-      }
 
       const user = await User.findByPk(userId);
       if (!user) {
         return res.status(404).send('User not found');
       }
 
-      await user.update({ username: username.trim() });
+      const { locale } = req.body;
 
-      // Return updated user without password
+      const normalizedLocale = typeof locale === 'string' ? locale.trim() : '';
+      if (!normalizedLocale || normalizedLocale.length === 0) {
+        return res.status(400).send('Locale is required');
+      }
+
+      if (!SUPPORTED_LOCALES.includes(normalizedLocale)) {
+        return res.status(400).send('Invalid locale');
+      }
+
+      await user.update({ locale: normalizedLocale });
+
       const updatedUser = await User.findByPk(userId, {
         attributes: ['id', 'email', 'username', 'role', 'avatarPath', 'locale'],
       });
