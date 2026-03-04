@@ -42,7 +42,9 @@ async function startServer() {
     // Import the backend app
     const backendAppModule = await import('./backend/server.js');
     const backendApp = backendAppModule.default || backendAppModule;
-    server.use('/api', backendApp);
+    const apiPath = process.env.API_PATH || '/api';
+    console.log(`Mounting backend API at: ${apiPath}`);
+    server.use(apiPath, backendApp);
 
     // For Next.js standalone build
     // Check if we have the Next.js server file

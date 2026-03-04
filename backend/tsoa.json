@@ -1,13 +1,16 @@
 {
   "entryFile": "server.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["controllers/**/*.ts"],
+  "controllerPathGlobs": [
+    "controllers/**/*.ts"
+  ],
   "compilerOptions": {
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
   "spec": {
+    "basePath": "/",
     "outputDirectory": "public",
     "specVersion": 3,
     "securityDefinitions": {

@@ -36,10 +36,17 @@ RUN npm run build
 FROM base AS backend-builder
 WORKDIR /app
 
+ARG API_PATH=/api
+
+# Install jq for JSON manipulation
+RUN apk add --no-cache jq
+
 COPY --from=deps /app/backend/node_modules ./backend/node_modules
 COPY backend ./backend
 
 WORKDIR /app/backend
+# Update tsoa.json spec.basePath with the API_PATH using jq
+RUN jq --arg path "$API_PATH" '.spec.basePath = $path' tsoa.json > tsoa.tmp && mv tsoa.tmp tsoa.json
 RUN npm run build
 
 # Final production image
@@ -49,6 +56,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8000
 ENV FRONTEND_ORIGIN=http://localhost:8000
+ENV API_PATH=/api
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
