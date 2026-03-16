@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useContext, ChangeEvent, DragEvent } from 'react';
+import { useState, useEffect, useContext, useCallback, ChangeEvent, DragEvent } from 'react';
 import { Input, Textarea, Select, SelectItem, Button, Divider, Tooltip, addToast, Badge } from '@heroui/react';
 import { Save, Plus, ArrowLeft, Circle } from 'lucide-react';
 import CaseStepsEditor from './CaseStepsEditor';
@@ -17,6 +17,7 @@ import { PriorityMessages } from '@/types/priority';
 import { TestTypeMessages } from '@/types/testType';
 import { logError } from '@/utils/errorHandler';
 import { updateCaseTags } from '@/utils/caseTagsControls';
+import { getMaxStepId, insertStepAt, markStepDeleted, normalizeFetchedSteps, replaceStep } from '@/utils/stepEditorState';
 
 const defaultTestCase = {
   id: 0,
@@ -68,9 +69,6 @@ export default function CaseEditor({
   useFormGuard(isDirty, messages.areYouSureLeave);
 
   const onPlusClick = async (newStepNo: number) => {
-    if (!testCase.Steps) {
-      return;
-    }
     setIsDirty(true);
     const nextId = idCounter + 1;
     const newStep: StepType = {
@@ -87,61 +85,20 @@ export default function CaseEditor({
       editState: 'new',
     };
 
-    const updatedSteps = testCase.Steps.map((step) => {
-      if (step.caseSteps.stepNo >= newStepNo) {
-        return {
-          ...step,
-          editState: step.editState === 'notChanged' ? 'changed' : step.editState,
-          caseSteps: {
-            ...step.caseSteps,
-            stepNo: step.caseSteps.stepNo + 1,
-          },
-        };
-      }
-      return step;
-    });
-
-    updatedSteps.push(newStep);
-
-    setTestCase({
-      ...testCase,
-      Steps: updatedSteps,
-    });
+    setTestCase((prevCase) => ({
+      ...prevCase,
+      Steps: insertStepAt(prevCase.Steps, newStep, newStepNo),
+    }));
     setIdCounter(nextId);
   };
 
   const onDeleteClick = async (stepId: number) => {
     setIsDirty(true);
-    if (!testCase.Steps) {
-      return;
-    }
-    // find deletedStep's stepNo
 
-    const deletedStep = testCase.Steps.find((step) => step.id === stepId);
-    if (!deletedStep) {
-      return;
-    }
-    const deletedStepNo = deletedStep.caseSteps.stepNo;
-    deletedStep.editState = 'deleted';
-
-    const updatedSteps = testCase.Steps.map((step) => {
-      if (step.caseSteps.stepNo > deletedStepNo) {
-        return {
-          ...step,
-          editState: step.editState === 'notChanged' ? 'changed' : step.editState,
-          caseSteps: {
-            ...step.caseSteps,
-            stepNo: step.caseSteps.stepNo - 1,
-          },
-        };
-      }
-      return step;
-    });
-
-    setTestCase({
-      ...testCase,
-      Steps: updatedSteps,
-    });
+    setTestCase((prevCase) => ({
+      ...prevCase,
+      Steps: markStepDeleted(prevCase.Steps, stepId),
+    }));
   };
 
   const handleDrop = (event: DragEvent<HTMLElement>) => {
@@ -201,46 +158,37 @@ export default function CaseEditor({
   };
 
   const onStepUpdate = (stepId: number, changeStep: StepType) => {
-    if (changeStep.editState === 'notChanged') {
-      changeStep.editState = 'changed';
-    }
+    const nextStep =
+      changeStep.editState === 'notChanged' ? { ...changeStep, editState: 'changed' as const } : changeStep;
 
-    if (!testCase.Steps) {
-      return;
-    }
-
-    const stepIndex = testCase.Steps.findIndex((step) => step.id === stepId);
-    testCase.Steps[stepIndex] = changeStep;
-
-    setTestCase({
-      ...testCase,
-      Steps: testCase.Steps,
-    });
+    setTestCase((prevCase) => ({
+      ...prevCase,
+      Steps: replaceStep(prevCase.Steps, stepId, nextStep),
+    }));
   };
 
-  useEffect(() => {
-    const fetchAndSetCase = async () => {
-      if (!tokenContext.isSignedIn()) return;
-      try {
-        const data = await fetchCase(tokenContext.token.access_token, Number(caseId));
-        data.Steps.forEach((step: StepType) => {
-          step.editState = 'notChanged';
-        });
-
-        // set idCounter to the max step id to avoid id conflict for new steps
-        // id is not reflected on database
-        const maxStepId = data.Steps.reduce((maxId: number, step: StepType) => Math.max(maxId, step.id), 0);
-        setIdCounter(maxStepId);
-        setTestCase(data);
-        if (data.Tags) {
-          setSelectedTags(Array.isArray(data.Tags) ? data.Tags : []);
-        }
-      } catch (error: unknown) {
-        logError('Error fetching case data', error);
+  const fetchAndSetCase = useCallback(async () => {
+    if (!tokenContext.isSignedIn()) return;
+    try {
+      const data = await fetchCase(tokenContext.token.access_token, Number(caseId));
+      const normalizedSteps = normalizeFetchedSteps(data.Steps);
+      const maxStepId = getMaxStepId(normalizedSteps);
+      setIdCounter(maxStepId);
+      setTestCase({
+        ...data,
+        Steps: normalizedSteps,
+      });
+      if (data.Tags) {
+        setSelectedTags(Array.isArray(data.Tags) ? data.Tags : []);
       }
-    };
-    fetchAndSetCase();
+    } catch (error: unknown) {
+      logError('Error fetching case data', error);
+    }
   }, [tokenContext, caseId]);
+
+  useEffect(() => {
+    fetchAndSetCase();
+  }, [fetchAndSetCase]);
 
   return (
     <>
@@ -279,6 +227,7 @@ export default function CaseEditor({
 
                 const tagIds = selectedTags.map((tag) => tag.id);
                 await updateCaseTags(tokenContext.token.access_token, Number(caseId), tagIds, projectId);
+                await fetchAndSetCase();
 
                 addToast({
                   title: 'Success',
